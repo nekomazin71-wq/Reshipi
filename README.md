@@ -12,3 +12,6 @@
 
 そんな感じで　ゆるーく目安のアプリです
 音声入力にも対応しましたが　複雑すぎてやめました
+
+
+<img width="286" height="317" alt="sumple01" src="https://github.com/user-attachments/assets/b0ec4838-03ac-4f09-8e25-d588ff4aab87" />
