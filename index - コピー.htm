@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>俺のレシピ</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  padding: 10px;
+  margin: 0;
+  background: linear-gradient(135deg,#f8ffae,#43c6ac);
+}
+
+/* タイトル */
+h1 {
+  font-size: 20px;
+}
+
+/* 入力エリア */
+.input-area {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+input, select {
+  padding: 8px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+/* =====================
+   ボタン立体化
+===================== */
+button {
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+
+  background: linear-gradient(145deg, #ffffff, #dcdcdc);
+  box-shadow:
+    4px 4px 8px rgba(0,0,0,0.2),
+    -2px -2px 6px rgba(255,255,255,0.7);
+
+  transition: all 0.15s ease;
+}
+
+button:active {
+  transform: translateY(2px);
+  box-shadow:
+    2px 2px 4px rgba(0,0,0,0.2),
+    -1px -1px 3px rgba(255,255,255,0.7);
+}
+
+/* 追加ボタン */
+.input-area button {
+  background: linear-gradient(145deg,#ff7043,#ff3d00);
+  color: white;
+  font-weight: bold;
+}
+
+/* テーブル */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+
+/* 操作ボタン */
+td button:nth-child(1) {
+  background: linear-gradient(145deg,#66bb6a,#2e7d32);
+  color: white;
+}
+td button:nth-child(2) {
+  background: linear-gradient(145deg,#42a5f5,#1565c0);
+  color: white;
+}
+td button:nth-child(3) {
+  background: linear-gradient(145deg,#ef5350,#c62828);
+  color: white;
+}
+
+/* 人数ボタン */
+.buttons {
+  margin: 10px 0;
+}
+.buttons button.active {
+  background: linear-gradient(145deg,#ff7043,#ff3d00);
+  color: white;
+}
+
+/* =====================
+   CSV横並び
+===================== */
+.csv-area {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.csv-area button {
+  flex: 1;
+  font-weight: bold;
+}
+
+/* 出力 */
+.csv-area button:first-child {
+  background: linear-gradient(145deg,#66bb6a,#2e7d32);
+  color: white;
+}
+
+/* 読み込み */
+.csv-area button:last-child {
+  background: linear-gradient(145deg,#42a5f5,#1565c0);
+  color: white;
+}
+
+/* リセット */
+.reset-btn {
+  margin-top: 10px;
+  width: 100%;
+  background: linear-gradient(145deg,#ef5350,#c62828);
+  color: white;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>?? 俺のレシピ</h1>
+
+<div class="input-area">
+  <input id="name" placeholder="食材">
+  <input id="qty" type="number" placeholder="量">
+  <select id="unit">
+    <option>g</option>
+    <option>cc</option>
+    <option>個</option>
+  </select>
+  <button onclick="add()">＋追加</button>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>?</th>
+<th>食材</th>
+<th>量</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody id="list"></tbody>
+</table>
+
+<div class="buttons" id="people"></div>
+
+<!-- CSV -->
+<div class="csv-area">
+  <button onclick="downloadCSV()">?? ファイルに出力</button>
+  <button onclick="document.getElementById('file').click()">?? ファイルを読み込み</button>
+</div>
+<input type="file" id="file" style="display:none" onchange="loadCSV(event)">
+
+<button class="reset-btn" onclick="resetAll()">?? リセット</button>
+
+<script>
+let data = [];
+let ninzu = 1;
+
+function add(){
+  const name = document.getElementById("name").value;
+  const qty = document.getElementById("qty").value;
+  const unit = document.getElementById("unit").value;
+  if(!name || !qty) return;
+
+  data.push({name, qty, unit});
+  render();
+
+  document.getElementById("name").value="";
+  document.getElementById("qty").value="";
+}
+
+function render(){
+  const list = document.getElementById("list");
+  list.innerHTML="";
+
+  data.forEach((d,i)=>{
+    list.innerHTML += `
+    <tr>
+      <td><input type="checkbox"></td>
+      <td>${d.name}</td>
+      <td>${d.qty * ninzu} ${d.unit}</td>
+      <td>
+        <button onclick="up(${i})">↑</button>
+        <button onclick="down(${i})">↓</button>
+        <button onclick="del(${i})">×</button>
+      </td>
+    </tr>`;
+  });
+}
+
+function up(i){
+  if(i===0)return;
+  [data[i],data[i-1]]=[data[i-1],data[i]];
+  render();
+}
+function down(i){
+  if(i===data.length-1)return;
+  [data[i],data[i+1]]=[data[i+1],data[i]];
+  render();
+}
+function del(i){
+  data.splice(i,1);
+  render();
+}
+
+/* 人数 */
+function makePeople(){
+  const area=document.getElementById("people");
+  for(let i=1;i<=10;i++){
+    const btn=document.createElement("button");
+    btn.innerText=i+"人前";
+    btn.onclick=()=>{
+      ninzu=i;
+      document.querySelectorAll(".buttons button").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      render();
+    }
+    if(i===1) btn.classList.add("active");
+    area.appendChild(btn);
+  }
+}
+makePeople();
+
+/* CSV出力 */
+function downloadCSV(){
+  let csv="食材,量,単位\n";
+  data.forEach(d=>{
+    csv+=`${d.name},${d.qty},${d.unit}\n`;
+  });
+
+  const blob=new Blob([csv],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="recipe.csv";
+  a.click();
+}
+
+/* CSV読込 */
+function loadCSV(e){
+  const file=e.target.files[0];
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const lines=reader.result.split("\n");
+    data=[];
+    lines.slice(1).forEach(l=>{
+      const [name,qty,unit]=l.split(",");
+      if(name) data.push({name,qty,unit});
+    });
+    render();
+  };
+  reader.readAsText(file);
+}
+
+/* リセット */
+function resetAll(){
+  data=[];
+  render();
+}
+</script>
+
+</body>
+</html>
