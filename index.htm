@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>俺のレシピ（音声対応）</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  padding: 10px;
+  margin: 0;
+  background: linear-gradient(135deg,#f8ffae,#43c6ac);
+}
+
+h1 { font-size: 20px; }
+
+.input-area {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+input, select {
+  padding: 8px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+/* ボタン立体 */
+button {
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  background: linear-gradient(145deg, #ffffff, #dcdcdc);
+  box-shadow: 4px 4px 8px rgba(0,0,0,0.2), -2px -2px 6px rgba(255,255,255,0.7);
+  transition: all 0.15s ease;
+}
+button:active {
+  transform: translateY(2px);
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.2), -1px -1px 3px rgba(255,255,255,0.7);
+}
+
+/* 追加 */
+.add-btn {
+  background: linear-gradient(145deg,#ff7043,#ff3d00);
+  color: white;
+  font-weight: bold;
+}
+
+/* 音声 */
+.voice-btn {
+  background: linear-gradient(145deg,#ab47bc,#6a1b9a);
+  color: white;
+  font-weight: bold;
+}
+
+/* テーブル */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+
+/* 操作 */
+td button:nth-child(1){ background:#66bb6a;color:#fff;}
+td button:nth-child(2){ background:#42a5f5;color:#fff;}
+td button:nth-child(3){ background:#ef5350;color:#fff;}
+
+.buttons { margin: 10px 0; }
+.buttons button.active {
+  background: linear-gradient(145deg,#ff7043,#ff3d00);
+  color: white;
+}
+
+/* CSV */
+.csv-area {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+.csv-area button {
+  flex: 1;
+  font-weight: bold;
+}
+.csv-area button:first-child {
+  background:#66bb6a;color:#fff;
+}
+.csv-area button:last-child {
+  background:#42a5f5;color:#fff;
+}
+
+.reset-btn {
+  margin-top: 10px;
+  width: 100%;
+  background:#ef5350;
+  color:white;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>?? 俺のレシピ（音声OK）</h1>
+
+<div class="input-area">
+  <input id="name" placeholder="食材">
+  <input id="qty" type="number" placeholder="量">
+  <select id="unit">
+    <option>g</option>
+    <option>cc</option>
+    <option>個</option>
+  </select>
+  <button class="add-btn" onclick="add()">＋追加</button>
+  <button class="voice-btn" onclick="toggleVoice()">?? 音声入力</button>
+</div>
+
+<div id="voiceStatus">音声：停止中</div>
+
+<table>
+<thead>
+<tr>
+<th>?</th><th>食材</th><th>量</th><th>操作</th>
+</tr>
+</thead>
+<tbody id="list"></tbody>
+</table>
+
+<div class="buttons" id="people"></div>
+
+<div class="csv-area">
+  <button onclick="downloadCSV()">?? ファイルに出力</button>
+  <button onclick="document.getElementById('file').click()">?? ファイルを読み込み</button>
+</div>
+<input type="file" id="file" style="display:none" onchange="loadCSV(event)">
+
+<button class="reset-btn" onclick="resetAll()">?? リセット</button>
+
+<script>
+let data = [];
+let ninzu = 1;
+
+/* 追加 */
+function add(){
+  const name = nameEl.value;
+  const qty = qtyEl.value;
+  const unit = unitEl.value;
+  if(!name || !qty) return;
+  data.push({name, qty, unit});
+  render();
+  nameEl.value=""; qtyEl.value="";
+}
+
+const nameEl = document.getElementById("name");
+const qtyEl = document.getElementById("qty");
+const unitEl = document.getElementById("unit");
+
+/* 描画 */
+function render(){
+  const list = document.getElementById("list");
+  list.innerHTML="";
+  data.forEach((d,i)=>{
+    list.innerHTML += `
+    <tr>
+      <td><input type="checkbox"></td>
+      <td>${d.name}</td>
+      <td>${d.qty * ninzu} ${d.unit}</td>
+      <td>
+        <button onclick="up(${i})">↑</button>
+        <button onclick="down(${i})">↓</button>
+        <button onclick="del(${i})">×</button>
+      </td>
+    </tr>`;
+  });
+}
+
+function up(i){ if(i===0)return; [data[i],data[i-1]]=[data[i-1],data[i]]; render();}
+function down(i){ if(i===data.length-1)return; [data[i],data[i+1]]=[data[i+1],data[i]]; render();}
+function del(i){ data.splice(i,1); render();}
+
+/* 人数 */
+(function(){
+  const area=document.getElementById("people");
+  for(let i=1;i<=10;i++){
+    const b=document.createElement("button");
+    b.textContent=i+"人前";
+    b.onclick=()=>{
+      ninzu=i;
+      document.querySelectorAll(".buttons button").forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      render();
+    };
+    if(i===1) b.classList.add("active");
+    area.appendChild(b);
+  }
+})();
+
+/* CSV */
+function downloadCSV(){
+  let csv="食材,量,単位\n";
+  data.forEach(d=> csv+=`${d.name},${d.qty},${d.unit}\n`);
+  const blob=new Blob([csv],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="recipe.csv";
+  a.click();
+}
+function loadCSV(e){
+  const file=e.target.files[0];
+  const reader=new FileReader();
+  reader.onload=()=>{
+    data=[];
+    reader.result.split("\n").slice(1).forEach(l=>{
+      const [n,q,u]=l.split(",");
+      if(n) data.push({name:n,qty:q,unit:u});
+    });
+    render();
+  };
+  reader.readAsText(file);
+}
+
+/* リセット */
+function resetAll(){ data=[]; render(); }
+
+/* =====================
+   音声入力
+===================== */
+let recognition;
+let listening = false;
+
+function toggleVoice(){
+  if(!('webkitSpeechRecognition' in window)){
+    alert("このブラウザは音声入力非対応です（Chrome推奨）");
+    return;
+  }
+
+  if(!recognition){
+    recognition = new webkitSpeechRecognition();
+    recognition.lang = "ja-JP";
+    recognition.continuous = true;
+
+    recognition.onresult = (e)=>{
+      const text = e.results[e.results.length-1][0].transcript.trim();
+      parseVoice(text);
+    };
+  }
+
+  if(!listening){
+    recognition.start();
+    listening = true;
+    voiceStatus.textContent="音声：ON（話してください）";
+  } else {
+    recognition.stop();
+    listening = false;
+    voiceStatus.textContent="音声：停止中";
+  }
+}
+
+/* 音声解析 */
+function parseVoice(text){
+  console.log("音声:", text);
+
+  // 例: 卵 2 個
+  const match = text.match(/(.+?)\s*(\d+)\s*(g|cc|個)?/);
+
+  if(match){
+    const name = match[1];
+    const qty = match[2];
+    const unit = match[3] || "g";
+
+    data.push({name, qty, unit});
+    render();
+  }
+}
+</script>
+
+</body>
+</html>
