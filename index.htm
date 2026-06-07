@@ -1,106 +1,142 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4CAF50">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>俺のレシピ（音声対応）</title>
+<title>俺のレシピ</title>
 
 <style>
 body {
   font-family: sans-serif;
   padding: 10px;
   margin: 0;
-  background: linear-gradient(135deg,#f8ffae,#43c6ac);
+  max-width: 500px;
+  margin: auto;
 }
 
-h1 { font-size: 20px; }
+h2 { text-align: center; }
 
+/* ===== タイトル ===== */
+.title-area {
+  text-align: center;
+  margin-bottom: 10px;
+}
+.title-area input {
+  width: 70%;
+  padding: 10px;
+  font-size: 18px;
+}
+
+/* ===== 入力 ===== */
 .input-area {
   display: flex;
   gap: 5px;
   margin-bottom: 10px;
-  flex-wrap: wrap;
 }
+.input-area input:nth-child(1){ flex:2; }
+.input-area input:nth-child(2){ flex:1; }
+.input-area select{ flex:1; }
+.input-area button{ flex:1.2; }
 
-input, select {
-  padding: 8px;
-  font-size: 14px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-/* ボタン立体 */
+/* ===== 立体ボタン ===== */
 button {
   border-radius: 10px;
   border: none;
   cursor: pointer;
-  padding: 8px 12px;
-  background: linear-gradient(145deg, #ffffff, #dcdcdc);
-  box-shadow: 4px 4px 8px rgba(0,0,0,0.2), -2px -2px 6px rgba(255,255,255,0.7);
+  padding: 10px;
+
+  background: linear-gradient(145deg,#ffffff,#dcdcdc);
+  box-shadow:
+    4px 4px 8px rgba(0,0,0,0.2),
+    -2px -2px 6px rgba(255,255,255,0.7);
+
   transition: all 0.15s ease;
 }
 button:active {
   transform: translateY(2px);
-  box-shadow: 2px 2px 4px rgba(0,0,0,0.2), -1px -1px 3px rgba(255,255,255,0.7);
+  box-shadow:
+    2px 2px 4px rgba(0,0,0,0.2),
+    -1px -1px 3px rgba(255,255,255,0.7);
 }
 
 /* 追加 */
-.add-btn {
+.input-area button {
   background: linear-gradient(145deg,#ff7043,#ff3d00);
   color: white;
   font-weight: bold;
 }
 
-/* 音声 */
-.voice-btn {
-  background: linear-gradient(145deg,#ab47bc,#6a1b9a);
-  color: white;
-  font-weight: bold;
+/* ===== 人数 ===== */
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  margin: 10px 0;
 }
-
-/* テーブル */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
+.buttons button {
+  background: linear-gradient(145deg,#eee,#ccc);
 }
-th, td {
-  border: 1px solid #ccc;
-  padding: 6px;
-  text-align: center;
-}
-
-/* 操作 */
-td button:nth-child(1){ background:#66bb6a;color:#fff;}
-td button:nth-child(2){ background:#42a5f5;color:#fff;}
-td button:nth-child(3){ background:#ef5350;color:#fff;}
-
-.buttons { margin: 10px 0; }
 .buttons button.active {
   background: linear-gradient(145deg,#ff7043,#ff3d00);
   color: white;
 }
 
-/* CSV */
+/* ===== テーブル ===== */
+#ingredients {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+#ingredients th,#ingredients td {
+  padding: 10px;
+  text-align: center;
+  border: 2px solid #ccc;
+  font-size: 16px;
+}
+#ingredients tr:nth-child(even){ background:#fafafa; }
+
+.completed {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+/* 操作ボタン */
+td button:nth-child(1){background:#66bb6a;color:#fff;}
+td button:nth-child(2){background:#42a5f5;color:#fff;}
+td button:nth-child(3){background:#ef5350;color:#fff;}
+
+/* ===== CSV 横並び ===== */
 .csv-area {
   display: flex;
   gap: 10px;
-  margin-top: 15px;
+  margin-top: 20px;
 }
-.csv-area button {
+.csv-area > * {
   flex: 1;
-  font-weight: bold;
-}
-.csv-area button:first-child {
-  background:#66bb6a;color:#fff;
-}
-.csv-area button:last-child {
-  background:#42a5f5;color:#fff;
 }
 
+/* 出力 */
+.csv-area button:first-child {
+  background:#66bb6a;
+  color:white;
+  font-weight:bold;
+}
+
+/* 読み込み（擬似ボタン） */
+.file-label {
+  background:#42a5f5;
+  color:white;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+/* リセット */
 .reset-btn {
-  margin-top: 10px;
-  width: 100%;
   background:#ef5350;
   color:white;
   font-weight:bold;
@@ -110,177 +146,163 @@ td button:nth-child(3){ background:#ef5350;color:#fff;}
 
 <body>
 
-<h1>?? 俺のレシピ（音声OK）</h1>
+<h2>俺のレシピ　〇人だったらどうなる</h2>
+
+<div class="title-area">
+  俺の <input id="title" placeholder="ぷりん" oninput="saveToLocal()">
+</div>
 
 <div class="input-area">
   <input id="name" placeholder="食材">
-  <input id="qty" type="number" placeholder="量">
+  <input id="amount" type="number" placeholder="量">
   <select id="unit">
-    <option>g</option>
-    <option>cc</option>
-    <option>個</option>
+    <option value="g">g</option>
+    <option value="個">個</option>
+    <option value="cc">cc</option>
+    <option value="滴">滴</option>
+    <option value="cm">cm</option>
   </select>
-  <button class="add-btn" onclick="add()">＋追加</button>
-  <button class="voice-btn" onclick="toggleVoice()">?? 音声入力</button>
+  <button onclick="addIngredient()">＋追加</button>
 </div>
 
-<div id="voiceStatus">音声：停止中</div>
+<table id="ingredients"></table>
 
-<table>
-<thead>
-<tr>
-<th>?</th><th>食材</th><th>量</th><th>操作</th>
-</tr>
-</thead>
-<tbody id="list"></tbody>
-</table>
+<div class="buttons" id="buttons"></div>
 
-<div class="buttons" id="people"></div>
-
+<!-- CSV -->
 <div class="csv-area">
-  <button onclick="downloadCSV()">?? ファイルに出力</button>
-  <button onclick="document.getElementById('file').click()">?? ファイルを読み込み</button>
-</div>
-<input type="file" id="file" style="display:none" onchange="loadCSV(event)">
+  <button onclick="exportCSV()">ファイル出力</button>
 
-<button class="reset-btn" onclick="resetAll()">?? リセット</button>
+  <label class="file-label">
+    ファイル読み込み
+    <input type="file" accept=".csv" onchange="importCSV(event)" style="display:none">
+  </label>
+
+  <button class="reset-btn" onclick="resetRecipe()">リセット</button>
+</div>
 
 <script>
-let data = [];
-let ninzu = 1;
+let baseIngredients = [];
+let currentPeople = 1;
 
-/* 追加 */
-function add(){
-  const name = nameEl.value;
-  const qty = qtyEl.value;
-  const unit = unitEl.value;
-  if(!name || !qty) return;
-  data.push({name, qty, unit});
-  render();
-  nameEl.value=""; qtyEl.value="";
+/* 保存 */
+function saveToLocal(){
+  localStorage.setItem("recipeData", JSON.stringify({
+    title: title.value,
+    ingredients: baseIngredients,
+    people: currentPeople
+  }));
 }
 
-const nameEl = document.getElementById("name");
-const qtyEl = document.getElementById("qty");
-const unitEl = document.getElementById("unit");
+/* 読み込み */
+function loadFromLocal(){
+  const data = localStorage.getItem("recipeData");
+  if(!data) return;
+  const p = JSON.parse(data);
+  title.value = p.title || "";
+  baseIngredients = p.ingredients || [];
+  currentPeople = p.people || 1;
+}
+
+/* 追加 */
+function addIngredient(){
+  const name = document.getElementById("name").value;
+  const amount = parseFloat(document.getElementById("amount").value);
+  const unit = document.getElementById("unit").value;
+  if(!name || isNaN(amount)) return;
+
+  baseIngredients.push({name,amount,unit,checked:false});
+
+  document.getElementById("name").value="";
+  document.getElementById("amount").value="";
+
+  render(currentPeople);
+  saveToLocal();
+}
 
 /* 描画 */
-function render(){
-  const list = document.getElementById("list");
-  list.innerHTML="";
-  data.forEach((d,i)=>{
-    list.innerHTML += `
-    <tr>
-      <td><input type="checkbox"></td>
-      <td>${d.name}</td>
-      <td>${d.qty * ninzu} ${d.unit}</td>
+function render(p){
+  currentPeople = p;
+  let html = `<tr><th></th><th>食材</th><th>量</th><th>操作</th></tr>`;
+
+  baseIngredients.forEach((i,idx)=>{
+    let val = i.amount * p;
+    val = val % 1 === 0 ? val : val.toFixed(1);
+
+    html += `
+    <tr class="${i.checked?'completed':''}">
+      <td><input type="checkbox" ${i.checked?'checked':''} onchange="toggleCheck(${idx})"></td>
+      <td>${i.name}</td>
+      <td>${val} ${i.unit}</td>
       <td>
-        <button onclick="up(${i})">↑</button>
-        <button onclick="down(${i})">↓</button>
-        <button onclick="del(${i})">×</button>
+        <button onclick="moveUp(${idx})">↑</button>
+        <button onclick="moveDown(${idx})">↓</button>
+        <button onclick="deleteIngredient(${idx})">×</button>
       </td>
     </tr>`;
   });
+
+  ingredients.innerHTML = html;
+
+  document.querySelectorAll("#buttons button")
+    .forEach((b,i)=>b.classList.toggle("active",i+1===p));
 }
 
-function up(i){ if(i===0)return; [data[i],data[i-1]]=[data[i-1],data[i]]; render();}
-function down(i){ if(i===data.length-1)return; [data[i],data[i+1]]=[data[i+1],data[i]]; render();}
-function del(i){ data.splice(i,1); render();}
+/* 操作 */
+function toggleCheck(i){baseIngredients[i].checked=!baseIngredients[i].checked;saveToLocal();render(currentPeople);}
+function deleteIngredient(i){baseIngredients.splice(i,1);render(currentPeople);saveToLocal();}
+function moveUp(i){if(i===0)return;[baseIngredients[i-1],baseIngredients[i]]=[baseIngredients[i],baseIngredients[i-1]];render(currentPeople);}
+function moveDown(i){if(i===baseIngredients.length-1)return;[baseIngredients[i+1],baseIngredients[i]]=[baseIngredients[i],baseIngredients[i+1]];render(currentPeople);}
 
 /* 人数 */
 (function(){
-  const area=document.getElementById("people");
   for(let i=1;i<=10;i++){
     const b=document.createElement("button");
     b.textContent=i+"人前";
-    b.onclick=()=>{
-      ninzu=i;
-      document.querySelectorAll(".buttons button").forEach(x=>x.classList.remove("active"));
-      b.classList.add("active");
-      render();
-    };
-    if(i===1) b.classList.add("active");
-    area.appendChild(b);
+    b.onclick=()=>render(i);
+    buttons.appendChild(b);
   }
 })();
 
 /* CSV */
-function downloadCSV(){
+function exportCSV(){
   let csv="食材,量,単位\n";
-  data.forEach(d=> csv+=`${d.name},${d.qty},${d.unit}\n`);
-  const blob=new Blob([csv],{type:"text/csv"});
+  baseIngredients.forEach(i=>csv+=`${i.name},${i.amount},${i.unit}\n`);
+
+  const blob=new Blob([csv]);
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
   a.download="recipe.csv";
   a.click();
 }
-function loadCSV(e){
+
+function importCSV(e){
   const file=e.target.files[0];
   const reader=new FileReader();
   reader.onload=()=>{
-    data=[];
+    baseIngredients=[];
     reader.result.split("\n").slice(1).forEach(l=>{
-      const [n,q,u]=l.split(",");
-      if(n) data.push({name:n,qty:q,unit:u});
+      const [n,a,u]=l.split(",");
+      if(n) baseIngredients.push({name:n,amount:parseFloat(a),unit:u,checked:false});
     });
-    render();
+    render(currentPeople);
+    saveToLocal();
   };
   reader.readAsText(file);
 }
 
 /* リセット */
-function resetAll(){ data=[]; render(); }
-
-/* =====================
-   音声入力
-===================== */
-let recognition;
-let listening = false;
-
-function toggleVoice(){
-  if(!('webkitSpeechRecognition' in window)){
-    alert("このブラウザは音声入力非対応です（Chrome推奨）");
-    return;
-  }
-
-  if(!recognition){
-    recognition = new webkitSpeechRecognition();
-    recognition.lang = "ja-JP";
-    recognition.continuous = true;
-
-    recognition.onresult = (e)=>{
-      const text = e.results[e.results.length-1][0].transcript.trim();
-      parseVoice(text);
-    };
-  }
-
-  if(!listening){
-    recognition.start();
-    listening = true;
-    voiceStatus.textContent="音声：ON（話してください）";
-  } else {
-    recognition.stop();
-    listening = false;
-    voiceStatus.textContent="音声：停止中";
-  }
+function resetRecipe(){
+  if(!confirm("リセットする？")) return;
+  baseIngredients=[];
+  title.value="";
+  render(1);
+  saveToLocal();
 }
 
-/* 音声解析 */
-function parseVoice(text){
-  console.log("音声:", text);
-
-  // 例: 卵 2 個
-  const match = text.match(/(.+?)\s*(\d+)\s*(g|cc|個)?/);
-
-  if(match){
-    const name = match[1];
-    const qty = match[2];
-    const unit = match[3] || "g";
-
-    data.push({name, qty, unit});
-    render();
-  }
-}
+/* 起動 */
+loadFromLocal();
+render(currentPeople);
 </script>
 
 </body>
