@@ -304,6 +304,11 @@ function resetRecipe(){
 loadFromLocal();
 render(currentPeople);
 </script>
-
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js")
+    .then(() => console.log("SW登録OK"));
+}
+</script>
 </body>
 </html>
