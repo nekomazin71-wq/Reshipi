@@ -269,10 +269,21 @@ function exportCSV(){
   let csv="食材,量,単位\n";
   baseIngredients.forEach(i=>csv+=`${i.name},${i.amount},${i.unit}\n`);
 
+  // ===== ファイル名作成 =====
+  const menu = document.getElementById("title").value || "レシピ";
+
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth()+1).padStart(2,"0");
+  const d = String(now.getDate()).padStart(2,"0");
+
+  const filename = `${menu}_${y}${m}${d}.csv`;
+
+  // ===== ダウンロード =====
   const blob=new Blob([csv]);
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  a.download="recipe.csv";
+  a.download=filename;
   a.click();
 }
 
