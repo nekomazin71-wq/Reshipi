@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4CAF50">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>俺のレシピ</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  padding: 10px;
+  margin: 0;
+  max-width: 500px;
+  margin: auto;
+}
+
+h2 { text-align: center; }
+
+.title-area {
+  text-align: center;
+  margin-bottom: 10px;
+}
+.title-area input {
+  width: 70%;
+  padding: 10px;
+  font-size: 18px;
+}
+
+.input-area {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.input-area input:nth-child(1){ flex:2; }
+.input-area input:nth-child(2){ flex:1; }
+.input-area select{ flex:1; }
+.input-area button{ flex:1.2; }
+
+/* 立体ボタン */
+button {
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  background: linear-gradient(145deg,#ffffff,#dcdcdc);
+  box-shadow: 4px 4px 8px rgba(0,0,0,0.2), -2px -2px 6px rgba(255,255,255,0.7);
+}
+button:active { transform: translateY(2px); }
+
+.input-area button {
+  background: linear-gradient(145deg,#ff7043,#ff3d00);
+  color: white;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  margin: 10px 0;
+}
+.buttons button.active {
+  background: linear-gradient(145deg,#ff7043,#ff3d00);
+  color: white;
+}
+
+#ingredients {
+  width: 100%;
+  border-collapse: collapse;
+}
+#ingredients th,#ingredients td {
+  padding: 8px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+.completed {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+/* ★ 三等分エリア */
+.csv-area {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.csv-area > * {
+  flex: 1;
+  height: 45px;
+}
+
+/* 色分け */
+.csv-area button:nth-child(1) {
+  background: linear-gradient(145deg,#66bb6a,#43a047);
+  color: white;
+}
+
+.file-label {
+  background:#42a5f5;
+  color:white;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+.reset-btn {
+  background:#ef5350;
+  color:white;
+}
+</style>
+</head>
+
+<body>
+
+<h2>俺のレシピ</h2>
+
+<div class="title-area">
+  俺の <input id="title" placeholder="ぷりん" oninput="saveToLocal()">
+</div>
+
+<div class="input-area">
+  <input id="name" placeholder="食材">
+  <input id="amount" type="number" placeholder="量">
+  <select id="unit">
+    <option>g</option>
+    <option>個</option>
+    <option>cc</option>
+  </select>
+  <button onclick="addIngredient()">＋追加</button>
+</div>
+
+<table id="ingredients"></table>
+<div class="buttons" id="buttons"></div>
+
+<div class="csv-area">
+  <button onclick="exportCSV()">ファイル出力</button>
+  <label class="file-label">
+    ファイル入力
+    <input type="file" accept=".csv" onchange="importCSV(event)" hidden>
+  </label>
+  <button class="reset-btn" onclick="resetRecipe()">リセット</button>
+</div>
+
+<script>
+let baseIngredients = [];
+let currentPeople = 1;
+
+function saveToLocal(){
+  localStorage.setItem("recipeData", JSON.stringify({
+    title: title.value,
+    ingredients: baseIngredients,
+    people: currentPeople
+  }));
+}
+
+function loadFromLocal(){
+  const d = JSON.parse(localStorage.getItem("recipeData")||"{}");
+  title.value = d.title || "";
+  baseIngredients = d.ingredients || [];
+  currentPeople = d.people || 1;
+}
+
+function addIngredient(){
+  const n=name.value;
+  const a=parseFloat(amount.value);
+  const u=unit.value;
+  if(!n||isNaN(a)) return;
+
+  baseIngredients.push({name:n,amount:a,unit:u,checked:false});
+  name.value=""; amount.value="";
+  render(currentPeople);
+  saveToLocal();
+}
+
+function render(p){
+  currentPeople=p;
+  let html=`<tr><th></th><th>食材</th><th>量</th><th>操作</th></tr>`;
+
+  baseIngredients.forEach((i,idx)=>{
+    let val=(i.amount*p);
+    val = val%1===0?val:val.toFixed(1);
+
+    html+=`
+    <tr class="${i.checked?'completed':''}">
+      <td><input type="checkbox" ${i.checked?'checked':''} onchange="toggleCheck(${idx})"></td>
+
+      <td onclick="editNameStart(${idx})">
+        <span id="name-${idx}">${i.name}</span>
+      </td>
+
+      <td onclick="editAmountStart(${idx})">
+        <span id="amount-${idx}">${val} ${i.unit}</span>
+      </td>
+
+      <td>
+        <button onclick="moveUp(${idx})">↑</button>
+        <button onclick="moveDown(${idx})">↓</button>
+        <button onclick="deleteIngredient(${idx})">×</button>
+      </td>
+    </tr>`;
+  });
+
+  ingredients.innerHTML=html;
+
+  document.querySelectorAll("#buttons button")
+    .forEach((b,i)=>b.classList.toggle("active",i+1===p));
+}
+
+function editNameStart(i){
+  const el = document.getElementById(`name-${i}`);
+  const val = baseIngredients[i].name;
+
+  el.innerHTML = `<input value="${val}"
+    onblur="editNameEnd(${i}, this.value)"
+    onkeydown="if(event.key==='Enter') this.blur()">`;
+
+  el.querySelector("input").focus();
+}
+
+function editNameEnd(i,val){
+  baseIngredients[i].name = val;
+  saveToLocal();
+  render(currentPeople);
+}
+
+function editAmountStart(i){
+  const el = document.getElementById(`amount-${i}`);
+  const val = baseIngredients[i].amount;
+
+  el.innerHTML = `<input type="number" value="${val}"
+    onblur="editAmountEnd(${i}, this.value)"
+    onkeydown="if(event.key==='Enter') this.blur()">`;
+
+  el.querySelector("input").focus();
+}
+
+function editAmountEnd(i,val){
+  baseIngredients[i].amount = parseFloat(val)||0;
+  saveToLocal();
+  render(currentPeople);
+}
+
+function toggleCheck(i){baseIngredients[i].checked=!baseIngredients[i].checked;saveToLocal();render(currentPeople);}
+function deleteIngredient(i){baseIngredients.splice(i,1);render(currentPeople);saveToLocal();}
+function moveUp(i){if(i===0)return;[baseIngredients[i-1],baseIngredients[i]]=[baseIngredients[i],baseIngredients[i-1]];render(currentPeople);}
+function moveDown(i){if(i===baseIngredients.length-1)return;[baseIngredients[i+1],baseIngredients[i]]=[baseIngredients[i],baseIngredients[i+1]];render(currentPeople);}
+
+for(let i=1;i<=10;i++){
+  const b=document.createElement("button");
+  b.textContent=i+"人";
+  b.onclick=()=>render(i);
+  buttons.appendChild(b);
+}
+
+function exportCSV(){
+  let csv="食材,量,単位\n";
+  baseIngredients.forEach(i=>csv+=`${i.name},${i.amount},${i.unit}\n`);
+
+  const menu=title.value||"レシピ";
+  const now=new Date();
+  const y=now.getFullYear();
+  const m=String(now.getMonth()+1).padStart(2,"0");
+  const d=String(now.getDate()).padStart(2,"0");
+
+  const filename=`${menu}_${y}${m}${d}.csv`;
+
+  const blob=new Blob([csv]);
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  a.click();
+}
+
+function importCSV(e){
+  const f=e.target.files[0];
+  const r=new FileReader();
+  r.onload=()=>{
+    baseIngredients=[];
+    r.result.split("\n").slice(1).forEach(l=>{
+      const [n,a,u]=l.split(",");
+      if(n) baseIngredients.push({name:n,amount:parseFloat(a),unit:u,checked:false});
+    });
+    render(currentPeople);
+    saveToLocal();
+  };
+  r.readAsText(f);
+}
+
+function resetRecipe(){
+  if(!confirm("リセットする？")) return;
+  baseIngredients=[];
+  title.value="";
+  render(1);
+  saveToLocal();
+}
+
+loadFromLocal();
+render(currentPeople);
+
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+
+</body>
+</html>
