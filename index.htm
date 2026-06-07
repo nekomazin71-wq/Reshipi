@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4CAF50">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>俺のレシピ</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  padding: 10px;
+  margin: 0;
+  max-width: 500px;
+  margin: auto;
+
+  /* ?? パステル背景 */
+  background: linear-gradient(
+    135deg,
+    #fdfbfb 0%,
+    #ebedee 20%,
+    #fcefee 40%,
+    #e3fdfd 60%,
+    #fef9f9 80%,
+    #f7f9fc 100%
+  );
+}
+
+/* PCちょい拡張 */
+@media (min-width: 768px) {
+  body {
+    max-width: 700px;
+  }
+}
+
+h2 {
+  text-align: center;
+}
+
+/* タイトル */
+.title-area {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.title-area input {
+  width: 70%;
+  padding: 10px;
+  font-size: 18px;
+}
+
+/* 入力 */
+.input-area {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.input-area input:nth-child(1) { flex: 2; }
+.input-area input:nth-child(2) { flex: 1; }
+.input-area select { flex: 1; }
+
+.input-area button {
+  flex: 1.2;
+  padding: 10px;
+  font-size: 14px;
+}
+
+/* スマホ対応 */
+@media (max-width: 480px) {
+  .input-area {
+    flex-wrap: wrap;
+  }
+
+  .input-area button {
+    flex: 1 1 100%;
+  }
+}
+
+/* 人数ボタン */
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  margin: 10px 0;
+}
+
+.buttons button {
+  padding: 8px;
+  font-size: 14px;
+  border-radius: 6px;
+  background-color: #ddd;
+}
+
+.buttons button.active {
+  background-color: #FF5722;
+  color: white;
+}
+
+/* テーブル */
+#ingredients {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+#ingredients th,
+#ingredients td {
+  padding: 10px;
+  text-align: center;
+  border: 2px solid #ccc;
+  font-size: 16px;
+}
+
+#ingredients th {
+  background: #f0f0f0;
+}
+
+#ingredients tr:nth-child(even) {
+  background: #fafafa;
+}
+
+/* チェック済み */
+.completed {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+/* ボタン */
+button {
+  padding: 6px 8px;
+  margin: 2px;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+}
+
+/* CSVエリア */
+.csv-area {
+  margin-top: 20px;
+}
+
+.csv-area button,
+.csv-area input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 5px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>俺のレシピ　〇人だったらどうなる</h2>
+
+<div class="title-area">
+  俺の <input id="title" placeholder="ぷりん" oninput="saveToLocal()">
+</div>
+
+<div class="input-area">
+  <input id="name" placeholder="食材">
+  <input id="amount" type="number" placeholder="量">
+  <select id="unit">
+    <option value="g">g</option>
+    <option value="個">個</option>
+    <option value="cc">cc</option>
+    <option value="滴">滴</option>
+    <option value="cm">cm</option>
+  </select>
+  <button onclick="addIngredient()">＋追加</button>
+</div>
+
+<table id="ingredients"></table>
+
+<div class="buttons" id="buttons"></div>
+
+<div class="csv-area">
+  <button onclick="exportCSV()">CSV出力</button>
+  <input type="file" accept=".csv" onchange="importCSV(event)">
+
+  <button onclick="resetRecipe()" style="background:#f44336;color:white;">
+    別の料理を作る（リセット）
+  </button>
+</div>
+
+<script>
+let baseIngredients = [];
+let currentPeople = 1;
+
+/* =====================
+   保存
+===================== */
+function saveToLocal() {
+  localStorage.setItem("recipeData", JSON.stringify({
+    title: document.getElementById("title").value,
+    ingredients: baseIngredients,
+    people: currentPeople
+  }));
+}
+
+/* =====================
+   読み込み
+===================== */
+function loadFromLocal() {
+  const data = localStorage.getItem("recipeData");
+  if (!data) return;
+
+  const parsed = JSON.parse(data);
+  document.getElementById("title").value = parsed.title || "";
+  baseIngredients = parsed.ingredients || [];
+  currentPeople = parsed.people || 1;
+}
+
+/* =====================
+   追加
+===================== */
+document.getElementById("amount").addEventListener("keydown", e => {
+  if (e.key === "Enter") addIngredient();
+});
+
+function addIngredient() {
+  if (baseIngredients.length >= 20) return alert("最大20個まで");
+
+  const name = document.getElementById("name").value;
+  const amount = parseFloat(document.getElementById("amount").value);
+  const unit = document.getElementById("unit").value;
+
+  if (!name || isNaN(amount)) return;
+
+  baseIngredients.push({
+    name,
+    amount,
+    unit,
+    checked: false
+  });
+
+  document.getElementById("name").value = "";
+  document.getElementById("amount").value = "";
+  document.getElementById("name").focus();
+
+  render(currentPeople);
+  saveToLocal();
+}
+
+/* =====================
+   チェック
+===================== */
+function toggleCheck(index) {
+  baseIngredients[index].checked = !baseIngredients[index].checked;
+  saveToLocal();
+  render(currentPeople);
+}
+
+/* =====================
+   その場編集（名前）
+===================== */
+function editName(td, index) {
+  const old = baseIngredients[index].name;
+  td.innerHTML = `<input type="text" value="${old}">`;
+  const input = td.querySelector("input");
+  input.focus();
+
+  input.onblur = () => {
+    baseIngredients[index].name = input.value;
+    saveToLocal();
+    render(currentPeople);
+  };
+}
+
+/* =====================
+   その場編集（量）
+===================== */
+function editAmount(td, index) {
+  const old = baseIngredients[index].amount;
+  td.innerHTML = `<input type="number" value="${old}">`;
+  const input = td.querySelector("input");
+  input.focus();
+
+  input.onblur = () => {
+    const val = parseFloat(input.value);
+    if (!isNaN(val)) baseIngredients[index].amount = val;
+    saveToLocal();
+    render(currentPeople);
+  };
+}
+
+/* =====================
+   表示
+===================== */
+function render(people) {
+  currentPeople = people;
+
+  let html = `
+    <tr>
+      <th></th>
+      <th>食材</th>
+      <th>量</th>
+      <th>操作</th>
+    </tr>
+  `;
+
+  baseIngredients.forEach((item, index) => {
+    let value = item.amount * people;
+    value = (value % 1 === 0) ? value : value.toFixed(1);
+
+    html += `
+      <tr draggable="true"
+          data-index="${index}"
+          class="${item.checked ? "completed" : ""}">
+
+        <td>
+          <input type="checkbox"
+            ${item.checked ? "checked" : ""}
+            onchange="toggleCheck(${index})">
+        </td>
+
+        <td onclick="editName(this, ${index})">
+          ${item.name}
+        </td>
+
+        <td onclick="editAmount(this, ${index})">
+          ${value} ${item.unit}
+        </td>
+
+        <td>
+          <button onclick="moveUp(${index})">↑</button>
+          <button onclick="moveDown(${index})">↓</button>
+          <button onclick="deleteIngredient(${index})">×</button>
+        </td>
+
+      </tr>
+    `;
+  });
+
+  document.getElementById("ingredients").innerHTML = html;
+  addDragEvents();
+
+  document.querySelectorAll("#buttons button")
+    .forEach((btn, i) => {
+      btn.classList.toggle("active", i + 1 === people);
+    });
+}
+
+/* =====================
+   ドラッグ
+===================== */
+function addDragEvents() {
+  const rows = document.querySelectorAll("#ingredients tr[draggable='true']");
+  let dragIndex = null;
+
+  rows.forEach(row => {
+    row.addEventListener("dragstart", () => {
+      dragIndex = row.dataset.index;
+      row.classList.add("dragging");
+    });
+
+    row.addEventListener("dragend", () => {
+      row.classList.remove("dragging");
+    });
+
+    row.addEventListener("dragover", e => {
+      e.preventDefault();
+
+      const targetIndex = row.dataset.index;
+      if (dragIndex === null || dragIndex === targetIndex) return;
+
+      const moved = baseIngredients.splice(dragIndex, 1)[0];
+      baseIngredients.splice(targetIndex, 0, moved);
+
+      dragIndex = targetIndex;
+
+      saveToLocal();
+      render(currentPeople);
+    });
+  });
+}
+
+/* =====================
+   ↑ ↓ ×
+===================== */
+function deleteIngredient(index) {
+  baseIngredients.splice(index, 1);
+  render(currentPeople);
+  saveToLocal();
+}
+
+function moveUp(index) {
+  if (index === 0) return;
+  [baseIngredients[index - 1], baseIngredients[index]] =
+    [baseIngredients[index], baseIngredients[index - 1]];
+  render(currentPeople);
+  saveToLocal();
+}
+
+function moveDown(index) {
+  if (index === baseIngredients.length - 1) return;
+  [baseIngredients[index + 1], baseIngredients[index]] =
+    [baseIngredients[index], baseIngredients[index + 1]];
+  render(currentPeople);
+  saveToLocal();
+}
+
+/* =====================
+   人数ボタン
+===================== */
+function createButtons() {
+  const c = document.getElementById("buttons");
+  for (let i = 1; i <= 10; i++) {
+    const b = document.createElement("button");
+    b.textContent = i + "人前";
+    b.onclick = () => render(i);
+    c.appendChild(b);
+  }
+}
+
+/* =====================
+   CSV
+===================== */
+function exportCSV() {
+  let csv = "食材,量,単位\n";
+
+  baseIngredients.forEach(i => {
+    csv += `${i.name},${i.amount},${i.unit}\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  const title = document.getElementById("title").value || "レシピ";
+  const date = new Date().toISOString().slice(0,10);
+
+  a.href = url;
+  a.download = `${title}_${date}.csv`;
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+function importCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = e => {
+    const lines = e.target.result.split("\n");
+    baseIngredients = [];
+
+    lines.slice(1).forEach(l => {
+      const [n,a,u] = l.split(",").map(v => v?.trim());
+      if (n && a && u) {
+        baseIngredients.push({
+          name: n,
+          amount: parseFloat(a),
+          unit: u,
+          checked: false
+        });
+      }
+    });
+
+    render(currentPeople);
+    saveToLocal();
+  };
+
+  reader.readAsText(file);
+}
+
+/* =====================
+   リセット
+===================== */
+function resetRecipe() {
+  if (!confirm("リセットする？")) return;
+
+  baseIngredients = [];
+  currentPeople = 1;
+
+  document.getElementById("title").value = "";
+  document.getElementById("name").value = "";
+  document.getElementById("amount").value = "";
+
+  render(1);
+  saveToLocal();
+}
+
+/* =====================
+   起動
+===================== */
+createButtons();
+loadFromLocal();
+render(currentPeople);
+</script>
+
+</body>
+</html>
