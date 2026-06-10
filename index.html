@@ -78,7 +78,7 @@ h2 { text-align: center; color: #333; margin-top: 10px; }
 .input-area button {
   width: 100%;
   padding: 15px;
-  background: linear-gradient(#0288d1); /* 信頼感のある青系に変更 */
+  background: #0288d1; /* 信頼感のある青系に変更 */
   color: white;
   border: none;
   border-radius: 10px;
@@ -175,9 +175,16 @@ td[onclick^="editNameStart"] {
 /* インライン編集用入力 */
 .edit-input {
   width: 90%;
-  padding: 4px;
-  font-size: inherit;
-  border: 1px solid #2196f3;
+  padding: 8px 4px; /* スマホでタップしやすく少し高さを出す */
+  font-size: 18px; /* 入力中の文字を大きく */
+  border: 2px solid #2196f3;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* 数値入力は右寄せにしてカーソル位置を調整 */
+input[type="number"].edit-input {
+  text-align: right;
 }
 
 /* 操作ボタン */
@@ -229,7 +236,7 @@ td[onclick^="editNameStart"] {
 
 <body>
 
-<h2>俺のレシピ</h2>
+<h2>俺のレシピ 　〇人だったらどうなる</h2>
 
 <div class="title-area">
   俺の <input id="title" placeholder="ぷりん" oninput="saveToLocal()">
@@ -370,9 +377,15 @@ function render(p) {
 function editNameStart(i) {
   const el = document.getElementById(`name-${i}`);
   const val = baseIngredients[i].name;
-  el.onclick = null; // 二重クリック防止
-  el.innerHTML = `<input class="edit-input" value="${escapeHtml(val)}" onblur="editNameEnd(${i}, this.value)" onkeydown="if(event.key==='Enter') this.blur()">`;
-  el.querySelector("input").focus();
+  el.onclick = null;
+  el.innerHTML = `<input class="edit-input" value="${escapeHtml(val)}" 
+    onfocus="this.select()" 
+    onblur="editNameEnd(${i}, this.value)" 
+    onkeydown="if(event.key==='Enter') { event.preventDefault(); this.blur(); }">`;
+  
+  const input = el.querySelector("input");
+  input.focus();
+  setTimeout(() => input.select(), 50);
 }
 
 function editNameEnd(i, val) {
@@ -383,13 +396,20 @@ function editNameEnd(i, val) {
 
 function editAmountStart(i) {
   const el = document.getElementById(`amount-${i}`);
-  // 現在表示されている量（1人分 × 人数）を取得
   const currentDisplayVal = baseIngredients[i].amount * currentPeople;
   const formattedVal = currentDisplayVal % 1 === 0 ? currentDisplayVal : currentDisplayVal.toFixed(2).replace(/\.?0+$/, "");
   
   el.onclick = null;
-  el.innerHTML = `<input type="number" step="any" class="edit-input" value="${formattedVal}" onblur="editAmountEnd(${i}, this.value)" onkeydown="if(event.key==='Enter') this.blur()">`;
-  el.querySelector("input").focus();
+  // onclick="this.select()" を追加して、タップ時に全選択されるようにする
+  el.innerHTML = `<input type="number" step="any" class="edit-input" value="${formattedVal}" 
+    onfocus="this.select()" 
+    onblur="editAmountEnd(${i}, this.value)" 
+    onkeydown="if(event.key==='Enter') { event.preventDefault(); this.blur(); }">`;
+  
+  const input = el.querySelector("input");
+  input.focus();
+  // スマホ対策：少し遅らせて select() を実行すると確実に全選択される
+  setTimeout(() => input.select(), 50);
 }
 
 function editAmountEnd(i, val) {
