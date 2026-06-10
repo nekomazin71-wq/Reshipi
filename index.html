@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#4CAF50">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>俺のレシピ</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4CAF50">
+<title>俺のレシピ - 完全版</title>
 
 <style>
 body {
@@ -14,85 +14,191 @@ body {
   margin: 0;
   max-width: 500px;
   margin: auto;
+  background: #f8f9fa;
 }
 
-h2 { text-align: center; }
+h2 { text-align: center; color: #333; margin-top: 10px; }
 
 .title-area {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 .title-area input {
   width: 70%;
   padding: 10px;
   font-size: 18px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  text-align: center;
 }
 
 /* 入力エリア */
 .input-area {
   display: flex;
-  gap: 5px;
-  margin-bottom: 10px;
+  flex-direction: column; /* スマホで見やすいよう縦並びベースに */
+  gap: 10px;
+  margin-bottom: 20px;
+  background: #e1f5fe; /* 薄い青色で入力エリアを強調 */
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  border: 1px solid #0288d1;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.input-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.input-group label {
+  font-size: 12px;
+  font-weight: bold;
+  color: #01579b;
 }
 
 .input-area input,
 .input-area select {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 8px; /* 入力しやすく大きく */
+  border: 2px solid #0288d1; /* 枠線を太く */
+  border-radius: 8px;
+  font-size: 16px;
+  background: #fff;
 }
 
 .input-area button {
-  flex: 1;
-  white-space: nowrap;
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(#0288d1); /* 信頼感のある青系に変更 */
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+  margin-top: 5px;
 }
 
-/* ボタン */
+.input-area button:active {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+
+/* ボタン共通 */
 button {
-  border-radius: 10px;
-  border: none;
   cursor: pointer;
-  padding: 10px;
-  background: linear-gradient(145deg,#ffffff,#dcdcdc);
-  box-shadow: 4px 4px 8px rgba(0,0,0,0.2), -2px -2px 6px rgba(255,255,255,0.7);
+  transition: transform 0.1s;
 }
 button:active { transform: translateY(2px); }
 
-.input-area button {
-  background: linear-gradient(145deg,#ff7043,#ff3d00);
-  color: white;
-}
-
+/* 人数切り替えボタン */
 .buttons {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 5px;
-  margin: 10px 0;
+  gap: 6px;
+  margin: 15px 0;
+}
+.buttons button {
+  padding: 10px 0;
+  border: 1px solid #bbb; /* 枠線を付けて境界をはっきりさせる */
+  border-radius: 10px;
+  background: #f0f0f0; /* 少しグレーにして「押せる感」を出す */
+  color: #333; /* 文字を濃くして読みやすくする */
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+  font-size: 14px;
+  font-weight: 500;
 }
 .buttons button.active {
-  background: linear-gradient(145deg,#ff7043,#ff3d00);
+  background: linear-gradient(145deg, #ff7043, #ff3d00);
   color: white;
+  font-weight: bold;
+  border: 1px solid #e64a19; /* 選択中は枠線もオレンジ系に */
+  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.2); /* 押し込まれたような表現 */
 }
 
+/* テーブル */
 #ingredients {
   width: 100%;
   border-collapse: collapse;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  border: 1px solid #999; /* 外枠をしっかり */
 }
-#ingredients th,#ingredients td {
-  padding: 8px;
-  border: 1px solid #ccc;
+#ingredients th {
+  background: #444; /* ヘッダーを濃くして中身と分ける */
+  color: #fff;
+  padding: 12px 5px;
+  font-size: 15px;
+  border: 1px solid #666;
+}
+#ingredients td {
+  padding: 12px 5px;
+  border: 1px solid #ccc; /* セルごとの境界線をはっきり */
   text-align: center;
+  font-size: 16px; /* 文字を少し大きく */
+}
+
+/* 1行おきに色を付けて見やすくする */
+#ingredients tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* 食材名を強調 */
+td[onclick^="editNameStart"] {
+  font-weight: bold;
+  color: #000;
+  text-align: left !important; /* 食材名は左寄せが見やすい */
+  padding-left: 10px !important;
 }
 
 .completed {
-  opacity: 0.4;
+  background-color: #ddd !important; /* 完了時は背景を暗く */
+  color: #888;
   text-decoration: line-through;
 }
 
-/* CSVエリア */
+.completed td {
+  border-color: #bbb;
+}
+
+/* インライン編集用入力 */
+.edit-input {
+  width: 90%;
+  padding: 4px;
+  font-size: inherit;
+  border: 1px solid #2196f3;
+}
+
+/* 操作ボタン */
+.op-btn {
+  padding: 5px 8px;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  margin: 0 1px;
+}
+.btn-up { background: #66bb6a; }
+.btn-down { background: #42a5f5; }
+.btn-del { background: #ef5350; }
+
+/* CSV・リセットエリア */
 .csv-area {
   display: flex;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 25px;
+  margin-bottom: 30px;
 }
 
 .csv-area > * {
@@ -103,56 +209,21 @@ button:active { transform: translateY(2px); }
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
 }
 
-.csv-area button:nth-child(1) {
-  background: linear-gradient(145deg,#66bb6a,#43a047);
-  color: white;
-}
+.export-btn { background: #43a047; color: white; }
+.file-label { background: #1e88e5; color: white; }
+.reset-btn { background: #d32f2f; color: white; }
 
-.file-label {
-  background:#42a5f5;
-  color:white;
-  border-radius:10px;
-  cursor:pointer;
-}
-
-.reset-btn {
-  background:#ef5350;
-  color:white;
-}
-
-/* スマホ */
+/* スマホ対応 */
 @media (max-width: 480px) {
-  .input-area {
-    flex-wrap: wrap;
-  }
-
-  .input-area input,
-  .input-area select,
-  .input-area button {
-    flex: 1 1 100%;
-  }
+  .input-area { flex-wrap: wrap; }
+  .input-area input, .input-area select { flex: 1 1 40%; }
+  .input-area button { flex: 1 1 100%; margin-top: 5px; }
 }
-
-/* 操作ボタン色 */
-td button {
-  padding: 6px 8px;
-  font-size: 14px;
-}
-
-/* 上 */
-td button:nth-child(1) {
-  background:#66bb6a;color:#fff;}
-
-/* 下 */
-td button:nth-child(2) {
-  background:#42a5f5;color:#fff;}
-
-/* 削除 */
-td button:nth-child(3) {
-  background:#ef5350;color:#fff;}
-
 </style>
 </head>
 
@@ -161,203 +232,315 @@ td button:nth-child(3) {
 <h2>俺のレシピ</h2>
 
 <div class="title-area">
-  俺の <input id="title" placeholder="ぷりん">
+  俺の <input id="title" placeholder="ぷりん" oninput="saveToLocal()">
 </div>
 
 <div class="input-area">
-  <input id="name" placeholder="食材">
-  <input id="amount" type="number" placeholder="量">
-  <select id="unit">
-    <option>g</option>
-    <option>個</option>
-    <option>cc</option>
-  </select>
-  <button onclick="addIngredient()">＋追加</button>
+  <div class="input-row">
+    <div class="input-group" style="flex: 2;">
+      <label>食材名</label>
+      <input id="name" placeholder="例：小麦粉">
+    </div>
+  </div>
+  <div class="input-row">
+    <div class="input-group">
+      <label>分量</label>
+      <input id="amount" type="number" step="any" placeholder="例：100">
+    </div>
+    <div class="input-group">
+      <label>単位</label>
+      <select id="unit">
+        <option>g</option>
+        <option>個</option>
+        <option>cc</option>
+        <option>ml</option>
+        <option>本</option>
+        <option>枚</option>
+        <option>少々</option>
+      </select>
+    </div>
+  </div>
+  <button type="button" onclick="addIngredient()">リストに＋追加する</button>
 </div>
 
 <table id="ingredients"></table>
 <div class="buttons" id="buttons"></div>
 
 <div class="csv-area">
-  <button onclick="exportCSV()">ファイル出力</button>
+  <button type="button" class="export-btn" onclick="exportCSV()">ファイル出力</button>
   <label class="file-label">
     ファイル入力
     <input type="file" accept=".csv" onchange="importCSV(event)" hidden>
   </label>
-  <button class="reset-btn" onclick="resetRecipe()">リセット</button>
+  <button type="button" class="reset-btn" onclick="resetRecipe()">リセット</button>
 </div>
 
 <script>
-let baseIngredients = [];
+let baseIngredients = []; // 常に「1人分」のデータを保持する
 let currentPeople = 1;
 
-/* 保存 */
-function saveToLocal(){
-  localStorage.setItem("recipeData", JSON.stringify({
+/* ===== ローカルストレージ ===== */
+function saveToLocal() {
+  localStorage.setItem("recipeData_v2", JSON.stringify({
     title: document.getElementById("title").value,
     ingredients: baseIngredients,
     people: currentPeople
   }));
 }
 
-/* 読み込み */
-function loadFromLocal(){
-  const d = JSON.parse(localStorage.getItem("recipeData")||"{}");
+function loadFromLocal() {
+  const d = JSON.parse(localStorage.getItem("recipeData_v2") || "{}");
   document.getElementById("title").value = d.title || "";
   baseIngredients = d.ingredients || [];
   currentPeople = d.people || 1;
 }
 
-/* 追加（完全修正） */
-function addIngredient(){
-  const n = document.getElementById("name").value;
-  const a = parseFloat(document.getElementById("amount").value);
-  const u = document.getElementById("unit").value;
+/* ===== 食材追加 ===== */
+function addIngredient() {
+  const nameEl = document.getElementById("name");
+  const amountEl = document.getElementById("amount");
+  const unitEl = document.getElementById("unit");
 
-  if(!n || isNaN(a)) return;
+  const n = nameEl.value.trim();
+  const a = parseFloat(amountEl.value);
+  const u = unitEl.value;
 
-  baseIngredients.push({name:n,amount:a,unit:u,checked:false});
+  if (!n) return;
+  
+  // 入力された値を「1人分」に換算して保存する
+  const amountPerPerson = isNaN(a) ? 0 : (a / currentPeople);
 
-  document.getElementById("name").value="";
-  document.getElementById("amount").value="";
+  baseIngredients.push({
+    name: n,
+    amount: amountPerPerson,
+    unit: u,
+    checked: false
+  });
+
+  nameEl.value = "";
+  amountEl.value = "";
 
   render(currentPeople);
   saveToLocal();
 }
 
-/* 描画 */
-function render(p){
-  currentPeople=p;
-  let html=`<tr><th></th><th>食材</th><th>量</th><th>操作</th></tr>`;
+/* ===== 描画処理 ===== */
+function render(p) {
+  currentPeople = p;
+  const table = document.getElementById("ingredients");
+  
+  let html = `<thead><tr><th></th><th>食材</th><th>量</th><th>操作</th></tr></thead><tbody>`;
 
-  baseIngredients.forEach((i,idx)=>{
-    let val=(i.amount*p);
-    val = val%1===0?val:val.toFixed(1);
+  baseIngredients.forEach((item, idx) => {
+    // 表示用の計算（1人分 × 指定人数）
+    let displayAmount = item.amount * p;
+    // 小数点第2位まで（整数の場合はそのまま）
+    const formattedAmount = displayAmount === 0 ? "" : (displayAmount % 1 === 0 ? displayAmount : displayAmount.toFixed(2).replace(/\.?0+$/, ""));
 
-    html+=`
-    <tr class="${i.checked?'completed':''}">
-      <td><input type="checkbox" ${i.checked?'checked':''} onchange="toggleCheck(${idx})"></td>
-
+    html += `
+    <tr class="${item.checked ? 'completed' : ''}">
+      <td><input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleCheck(${idx})"></td>
+      
       <td onclick="editNameStart(${idx})">
-        <span id="name-${idx}">${i.name}</span>
+        <span id="name-${idx}">${escapeHtml(item.name)}</span>
       </td>
-
+      
       <td onclick="editAmountStart(${idx})">
-        <span id="amount-${idx}">${val} ${i.unit}</span>
+        <span id="amount-${idx}">${formattedAmount} ${item.unit}</span>
       </td>
-
+      
       <td>
-        <button onclick="moveUp(${idx})">↑</button>
-        <button onclick="moveDown(${idx})">↓</button>
-        <button onclick="deleteIngredient(${idx})">×</button>
+        <button type="button" class="op-btn btn-up" onclick="moveUp(${idx})">↑</button>
+        <button type="button" class="op-btn btn-down" onclick="moveDown(${idx})">↓</button>
+        <button type="button" class="op-btn btn-del" onclick="deleteIngredient(${idx})">×</button>
       </td>
     </tr>`;
   });
 
-  document.getElementById("ingredients").innerHTML=html;
+  html += `</tbody>`;
+  table.innerHTML = html;
 
-  document.querySelectorAll("#buttons button")
-    .forEach((b,i)=>b.classList.toggle("active",i+1===p));
+  // 人数ボタンのアクティブ表示切り替え
+  document.querySelectorAll("#buttons button").forEach((btn, i) => {
+    btn.classList.toggle("active", (i + 1) === p);
+  });
 }
 
-/* 編集 */
-function editNameStart(i){
+/* ===== インライン編集（修正版：計算不整合対策） ===== */
+function editNameStart(i) {
   const el = document.getElementById(`name-${i}`);
   const val = baseIngredients[i].name;
-
-  el.innerHTML = `<input value="${val}"
-    onblur="editNameEnd(${i}, this.value)"
-    onkeydown="if(event.key==='Enter') this.blur()">`;
-
+  el.onclick = null; // 二重クリック防止
+  el.innerHTML = `<input class="edit-input" value="${escapeHtml(val)}" onblur="editNameEnd(${i}, this.value)" onkeydown="if(event.key==='Enter') this.blur()">`;
   el.querySelector("input").focus();
 }
 
-function editNameEnd(i,val){
-  baseIngredients[i].name = val;
+function editNameEnd(i, val) {
+  baseIngredients[i].name = val.trim() || baseIngredients[i].name;
   saveToLocal();
   render(currentPeople);
 }
 
-function editAmountStart(i){
+function editAmountStart(i) {
   const el = document.getElementById(`amount-${i}`);
-  const val = baseIngredients[i].amount;
-
-  el.innerHTML = `<input type="number" value="${val}"
-    onblur="editAmountEnd(${i}, this.value)"
-    onkeydown="if(event.key==='Enter') this.blur()">`;
-
+  // 現在表示されている量（1人分 × 人数）を取得
+  const currentDisplayVal = baseIngredients[i].amount * currentPeople;
+  const formattedVal = currentDisplayVal % 1 === 0 ? currentDisplayVal : currentDisplayVal.toFixed(2).replace(/\.?0+$/, "");
+  
+  el.onclick = null;
+  el.innerHTML = `<input type="number" step="any" class="edit-input" value="${formattedVal}" onblur="editAmountEnd(${i}, this.value)" onkeydown="if(event.key==='Enter') this.blur()">`;
   el.querySelector("input").focus();
 }
 
-function editAmountEnd(i,val){
-  baseIngredients[i].amount = parseFloat(val)||0;
+function editAmountEnd(i, val) {
+  const inputVal = parseFloat(val);
+  if (!isNaN(inputVal)) {
+    // 【重要】入力された値を現在の人数で割って「1人分」として保存する
+    baseIngredients[i].amount = inputVal / currentPeople;
+  }
   saveToLocal();
   render(currentPeople);
 }
 
-/* 操作 */
-function toggleCheck(i){baseIngredients[i].checked=!baseIngredients[i].checked;saveToLocal();render(currentPeople);}
-function deleteIngredient(i){baseIngredients.splice(i,1);render(currentPeople);saveToLocal();}
-function moveUp(i){if(i===0)return;[baseIngredients[i-1],baseIngredients[i]]=[baseIngredients[i],baseIngredients[i-1]];render(currentPeople);}
-function moveDown(i){if(i===baseIngredients.length-1)return;[baseIngredients[i+1],baseIngredients[i]]=[baseIngredients[i],baseIngredients[i+1]];render(currentPeople);}
-
-/* 人数 */
-for(let i=1;i<=10;i++){
-  const b=document.createElement("button");
-  b.textContent=i+"人";
-  b.onclick=()=>render(i);
-  document.getElementById("buttons").appendChild(b);
+/* ===== 操作系 ===== */
+function toggleCheck(i) {
+  baseIngredients[i].checked = !baseIngredients[i].checked;
+  saveToLocal();
+  render(currentPeople);
 }
 
-/* CSV */
-function exportCSV(){
-  let csv="食材,量,単位\n";
-  baseIngredients.forEach(i=>csv+=`${i.name},${i.amount},${i.unit}\n`);
+function deleteIngredient(i) {
+  if (!confirm("この食材を削除しますか？")) return;
+  baseIngredients.splice(i, 1);
+  saveToLocal();
+  render(currentPeople);
+}
 
-  const menu=document.getElementById("title").value||"レシピ";
-  const now=new Date();
-  const y=now.getFullYear();
-  const m=String(now.getMonth()+1).padStart(2,"0");
-  const d=String(now.getDate()).padStart(2,"0");
+function moveUp(i) {
+  if (i === 0) return;
+  [baseIngredients[i - 1], baseIngredients[i]] = [baseIngredients[i], baseIngredients[i - 1]];
+  saveToLocal();
+  render(currentPeople);
+}
 
-  const filename=`${menu}_${y}${m}${d}.csv`;
+function moveDown(i) {
+  if (i === baseIngredients.length - 1) return;
+  [baseIngredients[i + 1], baseIngredients[i]] = [baseIngredients[i], baseIngredients[i + 1]];
+  saveToLocal();
+  render(currentPeople);
+}
 
-  const blob=new Blob([csv]);
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download=filename;
+/* ===== 人数ボタン生成 ===== */
+const btnContainer = document.getElementById("buttons");
+for (let i = 1; i <= 10; i++) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = i + "人";
+  b.onclick = () => {
+    currentPeople = i;
+    saveToLocal();
+    render(i);
+  };
+  btnContainer.appendChild(b);
+}
+
+/* ===== CSV連携（互換性・文字化け対策版） ===== */
+function exportCSV() {
+  // Excel用BOM
+  const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+  let csv = "食材,1人分の量,単位\n";
+  
+  baseIngredients.forEach(item => {
+    // カンマや改行を含むデータへの対策
+    const n = `"${item.name.replace(/"/g, '""')}"`;
+    const a = item.amount;
+    const u = `"${item.unit.replace(/"/g, '""')}"`;
+    csv += `${n},${a},${u}\n`;
+  });
+
+  const title = document.getElementById("title").value || "レシピ";
+  const filename = `${title}_${new Date().toISOString().slice(0,10)}.csv`;
+
+  const blob = new Blob([bom, csv], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
   a.click();
 }
 
-function importCSV(e){
-  const f=e.target.files[0];
-  const r=new FileReader();
-  r.onload=()=>{
-    baseIngredients=[];
-    r.result.split("\n").slice(1).forEach(l=>{
-      const [n,a,u]=l.split(",");
-      if(n) baseIngredients.push({name:n,amount:parseFloat(a),unit:u,checked:false});
-    });
-    render(currentPeople);
-    saveToLocal();
+function importCSV(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const text = event.target.result;
+      const lines = text.split(/\r?\n/);
+      const newIngredients = [];
+
+      // 1行目はヘッダーなのでスキップ
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        // 簡易的なCSVパース（カンマ分割）
+        // ※より厳密なパースが必要な場合は正規表現を使用
+        const parts = line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
+        if (parts.length >= 3) {
+          const n = parts[0].replace(/^"|"$/g, '').replace(/""/g, '"');
+          const a = parseFloat(parts[1]);
+          const u = parts[2].replace(/^"|"$/g, '').replace(/""/g, '"');
+          
+          newIngredients.push({
+            name: n,
+            amount: isNaN(a) ? 0 : a,
+            unit: u,
+            checked: false
+          });
+        }
+      }
+
+      if (newIngredients.length > 0) {
+        if (confirm(`${newIngredients.length}件の食材を読み込みますか？（現在のリストは上書きされます）`)) {
+          baseIngredients = newIngredients;
+          saveToLocal();
+          render(currentPeople);
+        }
+      } else {
+        alert("有効なデータが見つかりませんでした。");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("ファイルの読み込み中にエラーが発生しました。");
+    }
+    // 同じファイルを再度選択できるようにリセット
+    e.target.value = "";
   };
-  r.readAsText(f);
+  reader.readAsText(file);
 }
 
-function resetRecipe(){
-  if(!confirm("リセットする？")) return;
-  baseIngredients=[];
-  document.getElementById("title").value="";
-  render(1);
+function resetRecipe() {
+  if (!confirm("レシピをリセットして全消去しますか？")) return;
+  baseIngredients = [];
+  document.getElementById("title").value = "";
+  currentPeople = 1;
   saveToLocal();
+  render(1);
 }
 
-/* 起動 */
+function escapeHtml(str) {
+  return str.replace(/[&<>"']/g, (m) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[m]));
+}
+
+/* ===== 起動 ===== */
 loadFromLocal();
 render(currentPeople);
 
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("sw.js");
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 </script>
 
