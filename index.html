@@ -32,65 +32,47 @@ h2 { text-align: center; color: #333; margin-top: 10px; }
   text-align: center;
 }
 
-/* 入力エリア */
+/* 入力エリア（コンパクト版） */
 .input-area {
   display: flex;
-  flex-direction: column; /* スマホで見やすいよう縦並びベースに */
-  gap: 10px;
-  margin-bottom: 20px;
-  background: #e1f5fe; /* 薄い青色で入力エリアを強調 */
-  padding: 15px;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  border: 1px solid #0288d1;
-}
-
-.input-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.input-group {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   gap: 4px;
-}
-
-.input-group label {
-  font-size: 12px;
-  font-weight: bold;
-  color: #01579b;
+  margin-bottom: 15px;
+  background: #e1f5fe;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid #0288d1;
+  align-items: stretch;
 }
 
 .input-area input,
 .input-area select {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 12px 8px; /* 入力しやすく大きく */
-  border: 2px solid #0288d1; /* 枠線を太く */
-  border-radius: 8px;
-  font-size: 16px;
+  padding: 10px 4px;
+  border: 1px solid #0288d1;
+  border-radius: 6px;
+  font-size: 15px;
   background: #fff;
+  box-sizing: border-box;
 }
 
+#name { flex: 3; min-width: 0; }
+#amount { flex: 1.5; min-width: 0; text-align: right; }
+#unit { flex: 1.5; min-width: 0; }
+
 .input-area button {
-  width: 100%;
-  padding: 15px;
-  background: #0288d1; /* 信頼感のある青系に変更 */
+  flex: 1.2;
+  padding: 0;
+  background: #0288d1;
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 6px;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 20px;
   cursor: pointer;
-  margin-top: 5px;
 }
 
 .input-area button:active {
-  transform: translateY(4px);
-  box-shadow: none;
+  background: #01579b;
+  transform: scale(0.95);
 }
 
 /* ボタン共通 */
@@ -236,38 +218,24 @@ input[type="number"].edit-input {
 
 <body>
 
-<h2>俺のレシピ 　〇人だったらどうなる</h2>
+<h2>俺のレシピ</h2>
 
 <div class="title-area">
   俺の <input id="title" placeholder="ぷりん" oninput="saveToLocal()">
 </div>
 
 <div class="input-area">
-  <div class="input-row">
-    <div class="input-group" style="flex: 2;">
-      <label>食材名</label>
-      <input id="name" placeholder="例：小麦粉">
-    </div>
-  </div>
-  <div class="input-row">
-    <div class="input-group">
-      <label>分量</label>
-      <input id="amount" type="number" step="any" placeholder="例：100">
-    </div>
-    <div class="input-group">
-      <label>単位</label>
-      <select id="unit">
-        <option>g</option>
-        <option>個</option>
-        <option>cc</option>
-        <option>ml</option>
-        <option>本</option>
-        <option>枚</option>
-        <option>少々</option>
-      </select>
-    </div>
-  </div>
-  <button type="button" onclick="addIngredient()">リストに＋追加する</button>
+  <input id="name" placeholder="食材">
+  <input id="amount" type="number" step="any" placeholder="量">
+  <select id="unit">
+    <option>g</option>
+    <option>個</option>
+    <option>cc</option>
+    <option>ml</option>
+    <option>本</option>
+    <option>枚</option>
+  </select>
+  <button type="button" onclick="addIngredient()">＋</button>
 </div>
 
 <table id="ingredients"></table>
