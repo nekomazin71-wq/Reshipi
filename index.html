@@ -171,12 +171,20 @@ input[type="number"].edit-input {
 
 /* 操作ボタン */
 .op-btn {
-  padding: 5px 8px;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  padding: 0;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   color: #fff;
-  font-size: 12px;
-  margin: 0 1px;
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
 }
 .btn-up { background: #66bb6a; }
 .btn-down { background: #42a5f5; }
@@ -218,7 +226,7 @@ input[type="number"].edit-input {
 
 <body>
 
-<h2>俺のレシピ　〇人前ならどうなる？</h2>
+<h2>俺のレシピ</h2>
 
 <div class="title-area">
   俺の <input id="title" placeholder="ぷりん" oninput="saveToLocal()">
@@ -234,7 +242,6 @@ input[type="number"].edit-input {
     <option>ml</option>
     <option>本</option>
     <option>枚</option>
-    <option>滴</option>
   </select>
   <button type="button" onclick="addIngredient()">＋</button>
 </div>
